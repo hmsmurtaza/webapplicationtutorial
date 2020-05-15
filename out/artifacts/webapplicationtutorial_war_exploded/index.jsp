@@ -8,9 +8,19 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <html>
   <head>
-    <title>Hello world!</title>
+    <title>Web Application Tutorial</title>
   </head>
   <body>
-  <h1><% Date date = new Date(); out.print(date);%></h1>
+
+  <h2>Hello world!</h2>
+
+  <%
+    Date date = new Date();
+    out.print(date);
+  %>
+
+  <p>Body text, this is my second web application JSP page.</p>
+
+
   </body>
 </html>
