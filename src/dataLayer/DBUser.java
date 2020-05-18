@@ -1,5 +1,6 @@
 package dataLayer;
 
+import javax.swing.plaf.nimbus.State;
 import java.sql.*;
 
 public class DBUser {
@@ -11,47 +12,36 @@ public class DBUser {
     static final String USER = "webapplicationuser";
     static final String PASS = "webapplication123123";
 
-    public boolean isValidUserLogin(String sUserName, String sUserPassword) {
-        boolean isValidUser = false;
+    Connection connection = null;
+    Statement statement = null;
+    boolean isValidUser = false;
 
-        Connection connection = null;
-        Statement statement = null;
+    public boolean isValidUserLogin(String sUserName, String sUserPassword) {
+
         String sql = "";
 
         try {
             // STEP 2: Register JDBC driver
-            Class.forName(JDBC_DRIVER);
+            registerJDBCDriver(JDBC_DRIVER);
 
             // STEP 3: Open a connection
-            System.out.println("Connecting to database...");
-            connection = DriverManager.getConnection(DB_URL,USER, PASS);
+            openAConnection(DB_URL, USER, PASS);
 
             // STEP 4: Creating statement
-            System.out.println("Creating statement");
-            statement = connection.createStatement();
+            createStatement();
 
-            sql = "SELECT * FROM users WHERE user_name=\"" +
-                    sUserName + "\" AND user_password=\"" + sUserPassword + "\"";
-            System.out.println(sql);
-
-            ResultSet resultSet = statement.executeQuery(sql);
+            // execute query
+            ResultSet resultSet = executeQuery(sUserName,  sUserPassword);
 
             // STEP 5: Extract data from result set
-            if (resultSet.next()) {
-                isValidUser = true;
-            }
+            isValidUser = extractDataFromResultSet(resultSet);
 
             // STEP 6: Clean-up environment
-            resultSet.close();
-            statement.close();
-            connection.close();
-
+            closeConnections(resultSet, statement, connection);
 
         } catch (NullPointerException nullPointerException) {
             nullPointerException.printStackTrace();
-        } catch (SQLException sqlException) {
-            sqlException.printStackTrace();
-        } catch (Exception exception) {
+        }catch (Exception exception) {
             exception.printStackTrace();
         } finally {
             try {
@@ -65,5 +55,69 @@ public class DBUser {
         System.out.println("Closing Database connection -- GoodBye");
 
         return isValidUser;
+    }
+
+    private boolean extractDataFromResultSet(ResultSet resultSet) {
+
+        try {
+            if (resultSet.next()) {
+                isValidUser = true;
+            }
+        } catch (SQLException sqlException) {
+            sqlException.printStackTrace();
+        }
+        return isValidUser;
+    }
+
+    private ResultSet executeQuery(String sUserName, String sUserPassword) {
+        String sql = "";
+        sql = "SELECT * FROM users WHERE user_name=\"" +
+                sUserName + "\" AND user_password=\"" + sUserPassword + "\"";
+        System.out.println(sql);
+
+
+        ResultSet resultSet = null;
+        try {
+            resultSet = statement.executeQuery(sql);
+        } catch (SQLException sqlException) {
+            sqlException.printStackTrace();
+        }
+        return resultSet;
+    }
+
+    private void createStatement() {
+        System.out.println("Creating statement");
+        try {
+            statement = connection.createStatement();
+        } catch (SQLException sqlException) {
+            sqlException.printStackTrace();
+        }
+    }
+
+    private void openAConnection(String dbUrl, String user, String pass) {
+        System.out.println("Connecting to database...");
+        try {
+            connection = DriverManager.getConnection(dbUrl,user, pass);
+        } catch (SQLException sqlException) {
+            sqlException.printStackTrace();
+        }
+    }
+
+    private void registerJDBCDriver(String jdbcDriverName) {
+        try {
+            Class.forName(jdbcDriverName);
+        } catch (ClassNotFoundException classNotFoundException) {
+            classNotFoundException.printStackTrace();
+        }
+    }
+
+    private void closeConnections(ResultSet resultSet, Statement statement, Connection connection) {
+        try {
+            resultSet.close();
+            statement.close();
+            connection.close();
+        } catch (SQLException sqlException) {
+            sqlException.printStackTrace();
+        }
     }
 }
